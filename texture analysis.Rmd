@@ -1,0 +1,799 @@
+---
+title: "total baselines"
+author: "Elizabeth Bose"
+date: "12/4/2019"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+#import data
+```{r setup, include=FALSE}
+#import data
+base1.0<-texture_baseline1
+base2.0 <- texture_baseline2
+base3.0 <- texture_baseline3
+base4.0 <-texture_baseline4
+
+
+#taking out outlier images that could not get accurate surface area thresholds due to bad lighting or irregular objects in them because accurate textural information will not be extractable from these images
+base1.00 <- na.omit(base1.0)
+base2.00<- na.omit(base2.0)
+base3.00 <- na.omit(base3.0)
+base4.00  <- na.omit(base4.0)
+
+#name variables
+base1 <- data.frame(path=base1.00$path, hour=base1.00$hour, coveredutof=base1.00$third_covered_UtoF, covered=base1.00$third_covered, baseline=base1.00$baseline, y=base1.00$y, asm=base1.00$Angular.Second.Moment, contrast=base1.00$Contrast, idm=base1.00$Inverse.Difference.Moment, corr=base1.00$Correlation, entropy=base1.00$Entropy, energy=base1.00$Energy, inertia=base1.00$Inertia, homogeneity=base1.00$Homogeneity, prominence=base1.00$Prominence, variance=base1.00$Variance, shade=base1.00$Shade, rq=base1.00$Rq, ra=base1.00$Ra, rsk=base1.00$Rsk, rku=base1.00$Rku, rv=base1.00$Rv, rp=base1.00$Rp, rc=base1.00$Rc, rt=base1.00$Rt, fpo=base1.00$FPO, mfov=base1.00$MFOV, fad=base1.00$FAD, mrv=base1.00$MRV, sa=base1.00$SA, area=base1.00$uncropped_sa)
+
+base2 <- data.frame(path=base2.00$path, hour=base2.00$hour, coveredutof=base2.00$third_covered_UtoF, covered=base2.00$third_covered, baseline=base2.00$baseline, y=base2.00$y, asm=base2.00$Angular.Second.Moment, contrast=base2.00$Contrast, idm=base2.00$Inverse.Difference.Moment, corr=base2.00$Correlation, entropy=base2.00$Entropy, energy=base2.00$Energy, inertia=base2.00$Inertia, homogeneity=base2.00$Homogeneity, prominence=base2.00$Prominence, variance=base2.00$Variance, shade=base2.00$Shade, rq=base2.00$Rq, ra=base2.00$Ra, rsk=base2.00$Rsk, rku=base2.00$Rku, rv=base2.00$Rv, rp=base2.00$Rp, rc=base2.00$Rc, rt=base2.00$Rt, fpo=base2.00$FPO, mfov=base2.00$MFOV, fad=base2.00$FAD, mrv=base2.00$MRV, sa=base2.00$SA, area=base2.00$uncropped_sa)
+
+base3 <- data.frame(path=base3.00$path, hour=base3.00$hour, coveredutof=base3.00$third_covered_UtoF, covered=base3.00$third_covered, baseline=base3.00$baseline, y=base3.00$y, asm=base3.00$Angular.Second.Moment, contrast=base3.00$Contrast, idm=base3.00$Inverse.Difference.Moment, corr=base3.00$Correlation, entropy=base3.00$Entropy, energy=base3.00$Energy, inertia=base3.00$Inertia, homogeneity=base3.00$Homogeneity, prominence=base3.00$Prominence, variance=base3.00$Variance, shade=base3.00$Shade, rq=base3.00$Rq, ra=base3.00$Ra, rsk=base3.00$Rsk, rku=base3.00$Rku, rv=base3.00$Rv, rp=base3.00$Rp, rc=base3.00$Rc, rt=base3.00$Rt, fpo=base3.00$FPO, mfov=base3.00$MFOV, fad=base3.00$FAD, mrv=base3.00$MRV, sa=base3.00$SA, area=base3.00$uncropped_sa)
+
+base4 <- data.frame(path=base4.00$path, hour=base4.00$hour, coveredutof=base4.00$third_covered_UtoF, covered=base4.00$third_covered, baseline=base4.00$baseline, y=base4.00$y, asm=base4.00$Angular.Second.Moment, contrast=base4.00$Contrast, idm=base4.00$Inverse.Difference.Moment, corr=base4.00$Correlation, entropy=base4.00$Entropy, energy=base4.00$Energy, inertia=base4.00$Inertia, homogeneity=base4.00$Homogeneity, prominence=base4.00$Prominence, variance=base4.00$Variance, shade=base4.00$Shade, rq=base4.00$Rq, ra=base4.00$Ra, rsk=base4.00$Rsk, rku=base4.00$Rku, rv=base4.00$Rv, rp=base4.00$Rp, rc=base4.00$Rc, rt=base4.00$Rt, fpo=base4.00$FPO, mfov=base4.00$MFOV, fad=base4.00$FAD, mrv=base4.00$MRV, sa=base4.00$SA, area=base4.00$uncropped_sa)
+
+```
+
+#merge data into one
+```{r}
+base1.2 <-rbind(base1, base2)
+base1.2.3 <-rbind(base1.2, base3)
+base.all <- rbind(base1.2.3, base4)
+
+#ordering distribution labels: T, F, A
+base.all$coveredutof<-as.factor(base.all$coveredutof)
+base.all$coveredutof<-factor(base.all$coveredutof, levels=rev(levels(base.all$coveredutof)))
+print(levels(base.all$coveredutof)) #make sure order is T, F, A
+#saving baseline # as factor instead of integer
+str(base.all)
+```
+#summary stats
+```{r}
+#contingency table
+library(sjPlot)
+sjt.xtab(base.all$coveredutof,base.all$y,file="cont1.doc")
+#summary statistics
+library(table1)
+library(boot)
+base.all$coveredutof<-factor(base.all$coveredutof, levels=c("T", "F","A"),labels=c("Covered","Clumped","Gaps"))
+label(base.all$coveredutof)<-"Distribution"
+base.all$y<-factor(base.all$y,levels=c("FALSE","TRUE"),labels=c("FALSE","TRUE"))
+label(base.all$y) <-"Image label"
+label(base.all$asm)<-"Angular second moment"
+label(base.all$shade)<-"Shade"
+label(base.all$prominence)<-"Prominence"
+label(base.all$rc)<-"Rc"
+label(base.all$rsk)<-"Skewness"
+label(base.all$mfov)<-"MFOV"
+label(base.all$mrv)<-"MRV"
+label(base.all$fad)<-"FAD"
+label(base.all$area)<-"Area"
+units(base.all$area)<-"%"
+summary<-table1(~y+asm+shade+prominence+rsk+mfov+mrv+fad+area+coveredutof|baseline, data=base.all)
+summary
+```
+
+#will want baseline 4 to be reference so need to reverse order of baselines
+```{r}
+base.all$baseline <- as.factor(base.all$baseline)
+base.all$baseline <- factor(base.all$baseline, levels=rev(levels(base.all$baseline)))
+```
+
+
+#chi square test for independence to determine if variability in y label related to baseline number or distribution pattern
+```{r}
+#dependence of y label on distribution pattern
+tbl= table(base.all$y, base.all$coveredutof)
+tbl
+chisq.test(tbl)
+#dependence of y label on baseline number
+tbl2= table(base.all$y, base.all$baseline)
+tbl2
+chisq.test(tbl2)
+```
+
+
+#excluding textural features based on multicolinearity to incorporate some into the model and standardizing
+```{r}
+#removing variables that are highly correlated
+base.allb <- base.all[,c(2,3,5,6,7,15,17,20,24,27:29,31)]
+base.allb$coveredutof<-factor(base.allb$coveredutof, levels=rev(levels(base.allb$coveredutof)))
+print(levels(base.allb$coveredutof)) #want covered to be first so it is the reference
+base.allb$baseline <- as.factor(base.allb$baseline)
+base.allb$baseline <- factor(base.allb$baseline, levels=rev(levels(base.allb$baseline)))
+print(levels(base.allb$baseline))#want 4 to be first so it is the reference
+
+#standardizing
+library(robustHD)
+base.allb$zprominence <- standardize(base.allb$prominence)
+base.allb$zasm <- standardize(base.allb$asm)
+base.allb$zshade <- standardize(base.allb$shade)
+base.allb$zrsk <- standardize(base.allb$rsk)
+base.allb$zrc <- standardize(base.allb$rc)
+base.allb$zmfov <- standardize(base.allb$mfov)
+base.allb$zfad <- standardize(base.allb$fad)
+base.allb$zmrv <- standardize(base.allb$mrv)
+base.allb$zarea <- standardize(base.allb$area)
+names(base.allb)
+
+zbase.allb<- base.allb[,c(1:4,14:22)]#only standardized variables
+base.allb <- base.allb[,c(1:13)]
+
+```
+
+#step function with textural features of interest with standardized independent variables
+```{r}
+zbase.allc <- zbase.allb
+zbase.allc$coveredutof<-factor(zbase.allc$coveredutof, levels=rev(levels(zbase.allc$coveredutof)))
+print(levels(zbase.allc$coveredutof)) #want covered to be first so it is the reference
+zbase.allc$baseline <- factor(zbase.allc$baseline, levels=rev(levels(zbase.allc$baseline)))
+print(levels(zbase.allc$baseline)) #make sure baseline 4 is the reference
+str(zbase.allc)
+
+modall. <- glm(y ~ ., family=binomial(link="logit"), data=zbase.allc)
+summary(modall.) #all significant, continue with step function
+
+fit <- glm(y~.,family=binomial(link="logit"), data=zbase.allc)
+n= length(zbase.allb$y)
+step<- stepAIC(fit, directions="forward", k=2)
+step$anova
+
+step.model2 <- glm(y ~ hour + coveredutof + baseline + zasm + zprominence + zshade + zrsk + zrc + zmfov + zfad + zmrv + zarea, family=binomial(link="logit"), data=zbase.allc)
+#use vif to compute VIF, if above 5 or 10, then excessive multicolinearity
+car::vif(step.model2)#no multicolinearity
+summary(step.model2) #AIC is 28050
+
+#wald test
+library(car)
+wald.sm2<-Anova(step.model2, test="Wald")
+wald.sm2
+
+exp(cbind(OR=coef(step.model2),confint(step.model2)))
+(exp(cbind(OR=coef(step.model2),confint(step.model2)))-1)*100#this is the percent change in the odds for a one unit increase in the independent variables
+(step.model2$null.deviance-step.model2$deviance)/step.model2$nul2.deviance
+
+#mod.all.dist is model made at bottom
+anova(modall.area.dist, step.model2, test="Chisq") #the added complexity of the model with texture features is significant
+
+step.model2.0 <- glm(y ~ hour + coveredutof + zasm + zprominence + zshade + zrsk + zrc + zmfov + zfad + zmrv + zarea, family=binomial(link="logit"), data=zbase.allc)
+anova(step.model2.0, step.model2, test="Chisq")#including baseline in model is significant
+
+step.model2.00 <- glm(y ~ baseline + coveredutof + zasm + zprominence + zshade + zrsk + zrc + zmfov + zfad + zmrv + zarea, family=binomial(link="logit"), data=zbase.allc)
+anova(step.model2.00, step.model2, test="Chisq") #adding time is not significant 
+
+```
+
+#diagnostic plots of model with texture features, these look really good except the residauls vs fitted values are a little unbalanced
+```{r}
+library(statmod)
+qr.sm2 <-qresiduals(step.model2)
+hist(qr.sm2, breaks=200)
+qqnorm(qr.sm2)
+abline(a=0, b=1)
+plot(step.model2$fitted.values, qr.sm2)
+abline(h=0,col=2,lty=2)
+```
+
+#plots of asm of each image plotted with T/F labeled
+```{r}
+library(ggplot2)
+#jitterplot of all area values
+asm.all<- ggplot(base.all, aes(x=hour,y=asm))+geom_jitter(aes(color=y), alpha=1/3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","brown3"))+xlab("Time (hours)")+ylab("Angular second moment")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "bottom")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+asm.1<- ggplot(base1, aes(x=hour,y=asm))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("Time (hours)")+ylab("Angular second moment")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = c(0.1,0.9))+ guides(colour = guide_legend(override.aes = list(size=6)))+ scale_x_continuous(breaks=seq(0,50,10))
+asm.1
+
+asm.2<- ggplot(base2, aes(x=hour,y=asm))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("Time (hours)")+ylab("Angular second moment")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = c(0.1,0.9))+ guides(colour = guide_legend(override.aes = list(size=6)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+asm.3<- ggplot(base3, aes(x=hour,y=asm))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("Time (hours)")+ylab("Angular second moment")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = c(0.1,0.9))+ guides(colour = guide_legend(override.aes = list(size=6)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+asm.4<- ggplot(base4, aes(x=hour,y=asm))+geom_jitter(aes(color=y), alpha=1/3, size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("Time (hours)")+ylab("Angular second moment")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = c(0.1,0.9))+ guides(colour = guide_legend(override.aes = list(size=6)))+ scale_x_continuous(breaks=seq(0,50,10))
+```
+
+#plots of prominence of each image plotted with T/F labeled
+```{r}
+#jitterplot of all area values
+prominence.all<- ggplot(base.all, aes(x=hour,y=prominence))+geom_jitter(aes(color=y), alpha=1/3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","brown3"))+ggtitle("")+xlab("Time (hours)")+ylab("Prominence")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+prominence.1<- ggplot(base1, aes(x=hour,y=prominence))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("Prominence")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))+ scale_y_continuous(breaks=seq(0,600000000,100000000))
+
+prominence.2<- ggplot(base2, aes(x=hour,y=prominence))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("Prominence")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+prominence.3<- ggplot(base3, aes(x=hour,y=prominence))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("Prominence")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+prominence.4<- ggplot(base4, aes(x=hour,y=prominence))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("Prominence")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+```
+
+#plots of shade of each image plotted with T/F labeled
+```{r}
+#jitterplot of all area values
+shade.all<- ggplot(base.all, aes(x=hour,y=shade))+geom_jitter(aes(color=y), alpha=1/3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","brown3"))+xlab("Time (hours)")+ylab("Shade")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+shade.1<- ggplot(base1, aes(x=hour,y=shade))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("Shade")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+shade.2<- ggplot(base2, aes(x=hour,y=shade))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("Shade")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+shade.3<- ggplot(base3, aes(x=hour,y=shade))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("Shade")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+shade.4<- ggplot(base4, aes(x=hour,y=shade))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("Shade")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+```
+
+#plots of rsk of each image plotted with T/F labeled
+```{r}
+rsk.all<- ggplot(base.all, aes(x=hour,y=rsk))+geom_jitter(aes(color=y), alpha=1/3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","brown3"))+xlab("Time (hours)")+ylab("Rsk")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+rsk.1<- ggplot(base1, aes(x=hour,y=rsk))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("Rsk")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+rsk.2<- ggplot(base2, aes(x=hour,y=rsk))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("Rsk")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+rsk.3<- ggplot(base3, aes(x=hour,y=rsk))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("Rsk")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+rsk.4<- ggplot(base4, aes(x=hour,y=rsk))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("Rsk")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+```
+
+#plots of rc of each image plotted with T/F labeled
+```{r}
+#jitterplot of all area values
+rc.all<- ggplot(base.all, aes(x=hour,y=rc))+geom_jitter(aes(color=y), alpha=1/3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","brown3"))+xlab("Time (hours)")+ylab("Rc")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+rc.1<- ggplot(base1, aes(x=hour,y=rc))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("Rc (gray scale values)")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+rc.2<- ggplot(base2, aes(x=hour,y=rc))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("Rc (gray scale values)")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+rc.3<- ggplot(base3, aes(x=hour,y=rc))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("Rc (gray scale values)")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+rc.4<- ggplot(base4, aes(x=hour,y=rc))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("Rc (gray scale values)")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+```
+
+#plots of mfov of each image plotted with T/F labeled
+```{r}
+#jitterplot of all area values
+mfov.all<- ggplot(base.all, aes(x=hour,y=mfov))+geom_jitter(aes(color=y), alpha=1/3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","brown3"))+xlab("Time (hours)")+ylab("MFOV")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+    
+
+mfov.1<- ggplot(base1, aes(x=hour,y=mfov))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("MFOV (degrees)")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+
+mfov.2<- ggplot(base2, aes(x=hour,y=mfov))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("MFOV (degrees)")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+mfov.3<- ggplot(base3, aes(x=hour,y=mfov))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("Time")+ylab("MFOV (degrees)")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+mfov.4<- ggplot(base4, aes(x=hour,y=mfov))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("MFOV (degrees)")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+```
+
+#plots of fad of each image plotted with T/F labeled
+```{r}
+#jitterplot of all area values
+fad.all<- ggplot(base.all, aes(x=hour,y=fad))+geom_jitter(aes(color=y), alpha=1/3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+xlab("Time (hours)")+ylab("FAD")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+
+fad.1<- ggplot(base1, aes(x=hour,y=fad))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("FAD (degrees)")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+fad.2<- ggplot(base2, aes(x=hour,y=fad))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("FAD (degrees)")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+fad.3<- ggplot(base3, aes(x=hour,y=fad))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("FAD (degrees)")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+fad.4<- ggplot(base4, aes(x=hour,y=fad))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("FAD (degrees)")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+```
+
+#plots of mrv of each image plotted with T/F labeled
+```{r}
+#jitterplot of all area values
+mrv.all<- ggplot(base.all, aes(x=hour,y=mrv))+geom_jitter(aes(color=y), alpha=1/3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+xlab("")+ylab("MRV")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+mrv.1<- ggplot(base1, aes(x=hour,y=mrv))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("MRV")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+mrv.2<- ggplot(base2, aes(x=hour,y=mrv))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("MRV")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+mrv.3<- ggplot(base3, aes(x=hour,y=mrv))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("MRV")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+mrv.4<- ggplot(base4, aes(x=hour,y=mrv))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("MRV")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+```
+
+#plots of area of each image plotted with T/F labeled
+```{r}
+#jitterplot of all area values
+area.all<- ggplot(base.all, aes(x=hour,y=area))+geom_jitter(aes(color=y), alpha=1/3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","brown3"))+xlab("Time (hours)")+ylab("Area covered (%)")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+area.1<- ggplot(base1, aes(x=hour,y=area))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("Area covered (%)")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+area.2<- ggplot(base2, aes(x=hour,y=area))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("Area covered (%)")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+area.3<- ggplot(base3, aes(x=hour,y=area))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("Area covered (%)")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+
+area.4<- ggplot(base4, aes(x=hour,y=area))+geom_jitter(aes(color=y), alpha=1/3,size=3)+ theme_bw() + theme(
+  panel.border = element_blank(), 
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(), 
+  axis.line = element_line(colour = "black"))+scale_color_manual(breaks=c("TRUE","FALSE"), values=c("darkgrey","red2"))+ggtitle("")+xlab("")+ylab("Area covered (%)")+theme(
+    plot.title=element_text(hjust=0.5),
+    axis.text=element_text(size=20),
+    axis.title = element_text(size=24),
+    title =element_text(size=26),
+    legend.text=element_text(size=20),
+    legend.title= element_blank(),
+    legend.position = "none")+ guides(colour = guide_legend(override.aes = list(size=5)))+ scale_x_continuous(breaks=seq(0,50,10))
+```
