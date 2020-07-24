@@ -3,7 +3,7 @@
 Developed a time series classfification model to detect anamolous feedstock.
 
 ## Model Block Diagram:
-![Block Diagram](https://github.nrel.gov/dsievers/FCIC/blob/master/FCIC/feedstock_machine_vision/Code_Gudavalli/data/HighLevelModelRepresentation.png)
+![Block Diagram](https://github.com/NREL/feedstock_machine_vision/blob/master/HighLevelModelRepresentation.png)
 
 ## Run Instructions:
 
