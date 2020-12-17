@@ -1,4 +1,13 @@
 # Feedstock Machine Vision
-This project was created to provide easy import of datasets into LaTeX document scripts.
-### tabular
-Quickly convert Excel spreadsheet tables into LaTeX script for insertion into a working document. Creating large tables and tedious updating of values after changes in the data are easy to handle using this function call. Simply copy the text from the python console into your LaTeX editor, or use the output text file (optional). The module's script can be directly executed with the example code and external excel file provided.
+This project holds the code and resources used to construct two different analysis methodologies to detect particle size/shape anomalies during feeding and processing of lignocellulosic biomass, specifically corn stover, that may arise due to feedstock characteristics or milling operations. Variability in feedstock attributes has been identified as a cause for industrial process upsets and detection is desired to enable automated response such as adjusting the process parameters. A neural-network approach and an image pixel matrix feature statistical evaluation approach were used as documented by the journal article entitled [Real-Time Biomass Feedstock Particle Quality Detection Using Image Analysis and Machine Vision](http://dx.doi.org/10.1007/s13399-020-00904-w).
+
+---
+
+## Image Labelling
+Approximately 36,000 images were generated at the inlet of a reactor ingesting the corn stover feedstock during operations spanning approximately 200 h. Resources required to analytically determine the physical attributes of the corn stover in each of those images would be astronomical, and thus the quality of corn stover in each image was automatically determined using on-line process automation data recorded in parallel with the photograpy during operation. Each image was classified as either "normal" or "anomalous" depending on whether motor torque of a  feeder screw exceeded a threshold. Moving windowed quantile thresholds were applied, and an "alarm analyzer" funciton evaluated whether or not the system contained normal or anomalous feedstock at any given time with noise rejection. Images were thus labeled True/False for *anomalous* depending on the status at their timestamp.
+
+## Neural Network Approach
+This portion of the work developed a model that determines whether an image of corn stover feedstock contains normal or anomalous feedstock that can cause feeder equipment motor load spikes. A composite of different layers within a neural network model was assembled, trained, and tested. Further details are within the *binary classification* directory.
+
+## Pixel Matrix Feature Statistical Approach
+A large array of different texture and feature calculations were applied to each image pixel matrix. The textural aspects of feedstock image data were statistically analyzed to determine if the textural features were predictive of operational disruptions. The analysis techniques developed here allow for determining the features that correlate well with feedstock anomalies---identifying specific attributes that are likely causes for feedstock handling anomalies and allowing for further investigation to determine root causes of feedstock handling problems. See code within *texture analysis* for further information.
